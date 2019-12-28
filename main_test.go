@@ -3,52 +3,90 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestHandler(t *testing.T) {
-	//Here, we form a new HTTP request. This is the request that's going to be
-	// passed to our handler.
-	// The first argument is the method, the second argument is the route (which
-	//we leave blank for now, and will get back to soon), and the third is the
-	//request body, which we don't have in this case.
-	req, err := http.NewRequest("GET", "", nil)
+func TestRouter(test *testing.T) {
 
-	// In case there is an error in forming the request, we fail and stop the test
+	// instatiate a router we definde over in main.go
+	router := newRouter()
+
+	//create a new server from the httptest library
+	//pass in the router we made to test
+	mockServer := httptest.NewServer(router)
+
+	//Now the mocker server will need to trigger a GET request
+	// at the "/hello" route we just made
+	// also protip: it already exposes the url for us
+	resp, err := http.Get(mockServer.URL + "/hello")
+
+	//we need to account for any error response
 	if err != nil {
-		t.Fatal(err)
+		test.Fatal(err)
 	}
 
-	// We use Go's httptest library to create an http recorder. This recorder
-	// will act as the target of our http request
-	// (you can think of it as a mini-browser, which will accept the result of
-	// the http request that we make)
-	recorder := httptest.NewRecorder()
-
-
-	//func (HandlerFunc) ServeHTTP
-    //func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request)
-
-	// Create an HTTP handler from our handler function. "handler" is the handler
-	// function defined in our main.go file that we want to test
-	hf := http.HandlerFunc(handler)
-
-	// Serve the HTTP request to our recorder. This is the line that actually
-	// executes our the handler that we want to test
-	hf.ServeHTTP(recorder, req)
-
-	// Check the status code is what we expect.
-	if status := recorder.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
+	// we want our status code we get back to be 200(ok)
+	// the assmption here is that this will work properly
+	// so if we get any other reponse other than ok
+	// we need to be made aware of it
+	if resp.StatusCode != http.StatusOK {
+		test.Errorf("Status should be OK got %d", resp.StatusCode)
 	}
 
-	// Check the response body is what we expect.
-	expected := `Hello World!`
-	actual := recorder.Body.String()
-	if actual != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v", actual, expected)
+	// now we got to get the response of the body
+	// read it  and convert it to a string
+	defer resp.Body.Close()
+
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	//convert the bytes we go out of the body into a string
+	responseString := string(bytes)
+	expected := "Hello World!"
+
+	// now to pass the test we want to make sure they mach
+	// duh lol! :D
+
+	if responseString != expected {
+		test.Errorf("Response should be %s, got %s instead", expected, responseString)
+	}
+
+} //end test
+
+func TestForNonExistentRoute(test *testing.T) {
+
+	router := newRouter()
+	mockServer := httptest.NewServer(router)
+
+	resp, err := http.Post(mockServer.URL+"/hello", "", nil)
+
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	// here we ant are status code to be 405
+	// method not allowd
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		test.Errorf("Statues should be 405, got %d", resp.StatusCode)
+	}
+
+	//since the method POST is not allowed
+	// our message body will be EMPTY
+
+	defer resp.Body.Close()
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		test.Fatal(err)
+	}
+	responseString := string(bytes)
+	expected := ""
+
+	if responseString != expected {
+		test.Errorf("Response should be %s, but got %s", expected, responseString)
 	}
 }
