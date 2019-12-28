@@ -24,9 +24,15 @@ executable
 
 ```./go-web-app```
 
-
+Install dep & adding a package
 ```bash
 dep version
 dep init
 dep ensure -add github.com/gorilla/mux
+```
+
+testing and cleaning up the testcache
+```
+go test ./...
+go clean -testcache
 ```
