@@ -1,27 +1,26 @@
 package main
 
 import (
-	// we will need the "fmt" pacakge for I/O
+	// Import the gorilla/mux library we just installed
 	"fmt"
-
-	// we will need the "net/http" library to implment HTTP clients and servers
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	// The "HandleFunc" method accepts a path and a function as arguments
-	// (Yes, we can pass functions as arguments, and even trat them like variables in Go)
-	// However, the handler function has to have the appropriate signature (as described by the "handler" function below)
+	// Declare a new router
+	r := mux.NewRouter()
 
-	http.HandleFunc("/", handler)
+	// This is where the router is useful, it allows us to declare methods that
+	// this path will be valid for
+	r.HandleFunc("/hello", handler).Methods("GET")
 
-	// After defining our server, we finally "listen and serve" on port 8080
-	// The second argument is the handler, which we will come to later on, but for now it is left as nil,
-	// and the handler defined above (in "HandleFunc") is used
-	http.ListenAndServe(":8080", nil)
+	// We can then pass our router (after declaring all our routes) to this method
+	// (where previously, we were leaving the secodn argument as nil)
+	http.ListenAndServe(":8080", r)
 }
 
 func handler(writer http.ResponseWriter, request *http.Request) {
-
-	fmt.Fprint(writer, "Hello World!")
+	fmt.Fprintf(writer, "Hello World!")
 }

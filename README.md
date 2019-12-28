@@ -24,3 +24,9 @@ executable
 
 ```./go-web-app```
 
+
+```bash
+dep version
+dep init
+dep ensure -add github.com/gorilla/mux
+```
