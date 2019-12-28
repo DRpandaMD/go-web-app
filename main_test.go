@@ -89,4 +89,28 @@ func TestForNonExistentRoute(test *testing.T) {
 	if responseString != expected {
 		test.Errorf("Response should be %s, but got %s", expected, responseString)
 	}
+} // end test
+
+func TestStaticFileServer(test *testing.T) {
+	router := newRouter()
+	mockServer := httptest.NewServer(router)
+
+	resp, err := http.Get(mockServer.URL + "/assests/")
+
+	if err != nil {
+		test.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		test.Errorf("Status should be 200, got %d", resp.StatusCode)
+	}
+
+	//now we can see if we pull HTML
+	contentType := resp.Header.Get("Content-Type")
+	expextedContentType := "text/html; charset=utf-8"
+
+	if expextedContentType != contentType {
+		test.Errorf("Wrong content type: expected %s got %s", expextedContentType, contentType)
+	}
+
 }
