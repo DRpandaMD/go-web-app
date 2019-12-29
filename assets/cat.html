@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cat Ecyclopedia</title>
+</head>
+
+<body>
+    <h1>Lets talk about cats</h1>
+
+    <!--
+        Table Section
+    -->
+    <table>
+        <tr>
+            <th>Type</th>
+            <th>Descritpion</th>
+        </tr>
+        <tr>
+            <td>American Short Hair</td>
+            <td>Common American cat</td>
+        </tr>
+    </table>
+    <br>
+    <br>
+
+    <!--
+        Form Section to Post new Items
+    -->
+
+    <form action="/cat" method="POST">
+        Type:
+        <input type="text" name="type">
+        <br>
+        Descritpion:
+        <input type="text" name="description">
+        <input type="submit" value="Submit">
+    </form>
+
+    <!--
+        Script for fetch API to get a JSON list of birds
+        in this form:
+        [
+            {"type":"....", "description":"...."}
+            {"type":"....", "description":"...."}
+        ]
+    -->
+    <script>
+        catTable = document.querySelector("table")
+        fetch("/cat")
+            .then(response => response.json())
+            .then(catList => {
+                catList.forEach(cat => {
+                    row = document.createElement("tr")
+                    type = document.createElement("td")
+                    type.innerHTML = cat.type
+                    description = document.createElement("td")
+                    description.innerHTML = cat.description
+
+                    row.appendChild(type)
+                    row.appendChild(description)
+                    catTable.appendChild(row)
+                    
+                });
+            })
+    </script>
+</body>
+
+</html>
